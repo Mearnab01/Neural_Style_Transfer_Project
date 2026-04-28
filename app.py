@@ -1,1 +1,1 @@
-print("Hello World!")
+print("Neural Style Transfer Training Script")
