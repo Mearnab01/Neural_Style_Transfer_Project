@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleForge &mdash; AI Style Transfer</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- DM Sans from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- ─── Navbar ─────────────────────────────────────────────────────────────── -->
+<nav class="sf-navbar">
+    <div class="container">
+        <a class="sf-brand" href="#">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            StyleForge
+        </a>
+
+        <button class="sf-nav-toggle" id="navToggle" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="sf-nav-links" id="navLinks">
+            <a href="#" class="sf-nav-link">Home</a>
+            <a href="#examples" class="sf-nav-link">Examples</a>
+            <a href="#faq" class="sf-nav-link">FAQ</a>
+            <a href="#" class="sf-nav-link">API Docs</a>
+            <a href="#" class="sf-btn-ghost">Sign In</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── Hero ───────────────────────────────────────────────────────────────── -->
+<header class="sf-hero">
+    <div class="container">
+        <span class="sf-badge">
+            <i class="fa-solid fa-circle-dot"></i> AdaIN Neural Transfer
+        </span>
+        <h1>Transform any image<br>into a work of art</h1>
+        <p class="sf-hero-sub">
+            Upload a content photo and a style reference. Our model blends them using
+            Adaptive Instance Normalisation&mdash;results in seconds.
+        </p>
+    </div>
+</header>
+
+<!-- ─── Upload Form ─────────────────────────────────────────────────────────── -->
+<main class="container sf-main">
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {{ form.hidden_tag() }}
+
+        <!-- Upload grid -->
+        <div class="row g-4">
+
+            <!-- Content image -->
+            <div class="col-md-6">
+                <div class="sf-card h-100">
+                    <div class="sf-card-head">
+                        <i class="fa-regular fa-image"></i>
+                        Content Image
+                        <span class="sf-card-hint">Your photo</span>
+                    </div>
+                    <div class="sf-card-body">
+                        <div class="sf-dropzone" id="contentPreview">
+                            {% if content_image %}
+                                <img src="{{ url_for('send_image', filename=content_image) }}" alt="Content Image">
+                            {% else %}
+                                <div class="sf-dropzone-placeholder">
+                                    <i class="fa-regular fa-file-image"></i>
+                                    <span>No image selected</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.content(class="sf-file-input", onchange="previewFile(this, 'contentPreview')", accept="image/*") }}
+                        <label class="sf-file-label" for="{{ form.content.id }}">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            Choose content image
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style image -->
+            <div class="col-md-6">
+                <div class="sf-card h-100">
+                    <div class="sf-card-head">
+                        <i class="fa-solid fa-palette"></i>
+                        Style Reference
+                        <span class="sf-card-hint">Artwork or painting</span>
+                    </div>
+                    <div class="sf-card-body">
+                        <div class="sf-dropzone" id="stylePreview">
+                            {% if style_image %}
+                                <img src="{{ url_for('send_image', filename=style_image) }}" alt="Style Image">
+                            {% else %}
+                                <div class="sf-dropzone-placeholder">
+                                    <i class="fa-regular fa-file-image"></i>
+                                    <span>No image selected</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.style(class="sf-file-input", onchange="previewFile(this, 'stylePreview')", accept="image/*") }}
+                        <label class="sf-file-label" for="{{ form.style.id }}">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            Choose style image
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="sf-controls-row">
+            <div class="sf-slider-wrap">
+                <div class="sf-slider-header">
+                    <label for="alphaRange" class="sf-label">
+                        <i class="fa-solid fa-sliders"></i>
+                        Style strength
+                    </label>
+                    <span class="sf-slider-val" id="alphaDisplay">1.0</span>
+                </div>
+                {{ form.alpha(class="sf-slider", id="alphaRange", type="range", min="0", max="1", step="0.1") }}
+                <div class="sf-slider-ticks">
+                    <span>0.0</span><span>0.5</span><span>1.0</span>
+                </div>
+            </div>
+
+            <div class="sf-submit-wrap">
+                {{ form.submit(class="sf-btn-primary", id="submitBtn") }}
+            </div>
+        </div>
+    </form>
+
+    <!-- ─── Result ─────────────────────────────────────────────────────────── -->
+    {% if result_image %}
+    <section class="sf-result" id="resultSection">
+        <div class="sf-section-label">
+            <i class="fa-solid fa-check-circle"></i>
+            Result
+        </div>
+        <div class="sf-card sf-result-card">
+            <div class="sf-card-head">
+                <i class="fa-solid fa-star-of-life"></i>
+                Stylised output
+            </div>
+            <div class="sf-card-body p-0">
+                <img
+                    src="{{ url_for('send_image', filename=result_image) }}"
+                    class="sf-result-img"
+                    alt="Stylised result">
+            </div>
+            <div class="sf-card-foot">
+                <a href="{{ url_for('send_image', filename=result_image) }}"
+                   download
+                   class="sf-btn-secondary">
+                    <i class="fa-solid fa-download"></i>
+                    Download image
+                </a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ─── Error ──────────────────────────────────────────────────────────── -->
+    {% if error %}
+    <div class="sf-alert sf-alert-error" role="alert">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <!-- ─── Examples ──────────────────────────────────────────────────────── -->
+    <section class="sf-section" id="examples">
+        <div class="sf-section-label">Examples</div>
+        <div class="sf-card">
+            <div class="sf-card-head">
+                <i class="fa-regular fa-images"></i>
+                Sample transfers
+            </div>
+            <div class="sf-card-body">
+                <p class="sf-section-desc">Content image plus style reference equals stylised output.</p>
+
+                <!-- Example 1 -->
+                <div class="sf-example">
+                    <div class="sf-example-inputs">
+                        <div class="sf-example-col">
+                            <span class="sf-tag">Content</span>
+                            <img src="{{ url_for('send_example', filename='brad_pitt.jpg') }}"
+                                 alt="Content photo" class="sf-example-img">
+                        </div>
+                        <div class="sf-example-col">
+                            <span class="sf-tag">Style</span>
+                            <img src="{{ url_for('send_example', filename='sketch.png') }}"
+                                 alt="Sketch style" class="sf-example-img">
+                        </div>
+                    </div>
+                    <div class="sf-example-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="sf-example-output">
+                        <span class="sf-tag sf-tag-accent">Output</span>
+                        <img src="{{ url_for('send_example', filename='stylized_brad_pitt.jpg') }}"
+                             alt="Sketch result" class="sf-example-img">
+                    </div>
+                </div>
+
+                <!-- Example 2 -->
+                <div class="sf-example">
+                    <div class="sf-example-inputs">
+                        <div class="sf-example-col">
+                            <span class="sf-tag">Content</span>
+                            <img src="{{ url_for('send_example', filename='brad_pitt.jpg') }}"
+                                 alt="Content photo" class="sf-example-img">
+                        </div>
+                        <div class="sf-example-col">
+                            <span class="sf-tag">Style</span>
+                            <img src="{{ url_for('send_example', filename='picasso_seated_nude_hr.jpg') }}"
+                                 alt="Picasso style" class="sf-example-img">
+                        </div>
+                    </div>
+                    <div class="sf-example-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                    <div class="sf-example-output">
+                        <span class="sf-tag sf-tag-accent">Output</span>
+                        <img src="{{ url_for('send_example', filename='stylized_brad_pitt (1).jpg') }}"
+                             alt="Picasso result" class="sf-example-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FAQ ────────────────────────────────────────────────────────────── -->
+    <section class="sf-section" id="faq">
+        <div class="sf-section-label">FAQ</div>
+        <div class="sf-card">
+            <div class="sf-card-head">
+                <i class="fa-regular fa-circle-question"></i>
+                Frequently asked questions
+            </div>
+            <div class="sf-card-body p-0">
+                <div class="sf-accordion" id="faqAccordion">
+
+                    <div class="sf-accordion-item">
+                        <button class="sf-accordion-btn" data-target="faq1">
+                            Is this a pretrained model?
+                            <i class="fa-solid fa-chevron-down sf-accordion-icon"></i>
+                        </button>
+                        <div class="sf-accordion-body" id="faq1">
+                            No &mdash; we train the AdaIN model ourselves on large-scale image datasets.
+                        </div>
+                    </div>
+
+                    <div class="sf-accordion-item">
+                        <button class="sf-accordion-btn" data-target="faq2">
+                            Is the platform free to use?
+                            <i class="fa-solid fa-chevron-down sf-accordion-icon"></i>
+                        </button>
+                        <div class="sf-accordion-body" id="faq2">
+                            This demo is currently available as a free experience with no account required.
+                        </div>
+                    </div>
+
+                    <div class="sf-accordion-item">
+                        <button class="sf-accordion-btn" data-target="faq3">
+                            Which painting styles are supported?
+                            <i class="fa-solid fa-chevron-down sf-accordion-icon"></i>
+                        </button>
+                        <div class="sf-accordion-body" id="faq3">
+                            You can use almost any painting style &mdash; impressionist, abstract, cubist, watercolour, sketch, and more &mdash; as the style reference image.
+                        </div>
+                    </div>
+
+                    <div class="sf-accordion-item">
+                        <button class="sf-accordion-btn" data-target="faq4">
+                            What is the tech stack?
+                            <i class="fa-solid fa-chevron-down sf-accordion-icon"></i>
+                        </button>
+                        <div class="sf-accordion-body" id="faq4">
+                            Python, PyTorch, and Flask. The model uses VGG-based feature extraction with AdaIN normalisation.
+                        </div>
+                    </div>
+
+                    <div class="sf-accordion-item">
+                        <button class="sf-accordion-btn" data-target="faq5">
+                            What dataset was used for training?
+                            <i class="fa-solid fa-chevron-down sf-accordion-icon"></i>
+                        </button>
+                        <div class="sf-accordion-body" id="faq5">
+                            The model is trained on large-scale image datasets covering both photographs and artworks.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- ─── Footer ─────────────────────────────────────────────────────────────── -->
+<footer class="sf-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="sf-footer-brand">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    StyleForge
+                </div>
+                <p class="sf-footer-desc">
+                    AI-powered artistic style transfer built on AdaIN neural networks.
+                    Transform any photograph into a painting in seconds.
+                </p>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <h6 class="sf-footer-heading">Product</h6>
+                <nav class="sf-footer-nav">
+                    <a href="#">Home</a>
+                    <a href="#examples">Examples</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#">API Docs</a>
+                </nav>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h6 class="sf-footer-heading">Contact</h6>
+                <ul class="sf-footer-contact">
+                    <li><i class="fa-solid fa-location-dot"></i> 123 Innovation Dr, Tech City</li>
+                    <li><i class="fa-regular fa-envelope"></i> hello@styleforge.ai</li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h6 class="sf-footer-heading">Follow</h6>
+                <div class="sf-social-row">
+                    <a href="#" class="sf-social" aria-label="Twitter / X">
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </a>
+                    <a href="#" class="sf-social" aria-label="GitHub">
+                        <i class="fa-brands fa-github"></i>
+                    </a>
+                    <a href="#" class="sf-social" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="sf-footer-bottom">
+            <span>&copy; 2025 StyleForge. All rights reserved.</span>
+            <span class="sf-footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+<!-- ─── Loading Overlay ────────────────────────────────────────────────────── -->
+<div class="sf-loader" id="loader" aria-hidden="true">
+    <div class="sf-loader-box">
+        <div class="sf-spinner"></div>
+        <p class="sf-loader-title">Processing</p>
+        <p class="sf-loader-sub">Running style transfer&hellip;</p>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

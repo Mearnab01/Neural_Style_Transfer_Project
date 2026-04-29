@@ -14,11 +14,11 @@ def parse_arguments():
     p = argparse.ArgumentParser()
 
     # Paths
-    p.add_argument('--content_dir', type=str, default=r'C:\Users\Arnab 2001\Desktop\prime_projects\Neural_Style_Transfer_Project\content_data')
+    p.add_argument('--content_dir', type=str, default=r'/content/drive/MyDrive/ai_nst/big_datasets/content_dataset')
     
-    p.add_argument('--style_dir',   type=str, default=r'C:\Users\Arnab 2001\Desktop\prime_projects\Neural_Style_Transfer_Project\styled_data')
+    p.add_argument('--style_dir',   type=str, default=r'/content/drive/MyDrive/ai_nst/big_datasets/style_dataset')
     
-    p.add_argument('--vgg', type=str, default=r'C:\Users\Arnab 2001\Desktop\prime_projects\Neural_Style_Transfer_Project\vgg_normalised.pth')
+    p.add_argument('--vgg', type=str, default=r'/content/drive/MyDrive/ai_nst/Neural_Style_Transfer_Project/vgg_normalised.pth')
     
     p.add_argument('--experiment',    type=str, default='experiment1')
     p.add_argument('--decoder_path',  type=str, default=None)
