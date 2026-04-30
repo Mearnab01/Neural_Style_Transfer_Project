@@ -83,15 +83,17 @@ def main():
         shuffle=True,
         pin_memory=True,
         drop_last=True,
-        num_workers=2,
+        num_workers=4,
+        prefetch_factor=2
     )
     style_loader = DataLoader(
         style_dataset,
         batch_size=args.batch_size,
-        shuffle=True,           # shuffle style too — avoids same pairing every epoch
+        shuffle=True,          
         pin_memory=True,
         drop_last=True,
-        num_workers=2,
+        num_workers=4,
+        prefetch_factor=2
     )
 
     # ── Models ────────────────────────────────────────────────────────────────
