@@ -217,8 +217,8 @@ def main():
             decoder.eval()
             with torch.inference_mode():
                 sample = torch.cat([content_batch, style_batch, generated], dim=0)
-                save_image(sample, save_dir / f'sample_epoch{epoch + 1}.png',
-                           nrow=args.batch_size, normalize=True)
+                save_image(sample.clamp(0, 1), save_dir / f'sample_epoch{epoch + 1}.png',
+                           nrow=args.batch_size)
             decoder.train()
 
             print(f"Checkpoint saved at epoch {epoch + 1}")

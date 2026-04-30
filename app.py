@@ -26,9 +26,9 @@ app.config.update(
     UPLOAD_FOLDER     = os.path.join('static', 'uploads'),
     MAX_CONTENT_LENGTH= 16 * 1024 * 1024,   # 16 MB hard cap
     ALLOWED_EXTENSIONS= {'png', 'jpg', 'jpeg', 'webp'},
-    DECODER_PATH      = os.environ.get('DECODER_PATH', 'weights/decoder_final.pth'),
+    DECODER_PATH      = os.environ.get('DECODER_PATH', 'weights/checkpoint_decoder.pth'),
     ENCODER_PATH      = os.environ.get('ENCODER_PATH', 'weights/vgg_normalised.pth'),
-)
+) 
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
