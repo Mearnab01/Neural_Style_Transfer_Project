@@ -1,14 +1,18 @@
-/* ─────────────────────────────────────────────────────────────────────────────
-   StyleForge v2 — main.js
-───────────────────────────────────────────────────────────────────────────── */
-
 'use strict';
 
 /* ── Image preview ───────────────────────────────────────────────────────── */
 function previewFile(input, previewId) {
     const preview = document.getElementById(previewId);
     const file = input.files[0];
-    if (!file) return;
+
+    if (!file) {
+        preview.innerHTML = `
+            <div class="dz-placeholder">
+                <i class="fa-regular fa-file-image"></i>
+                <span>No image selected</span>
+            </div>`;
+        return;
+    }
 
     const reader = new FileReader();
     reader.addEventListener('load', function () {
@@ -58,7 +62,6 @@ function initForm() {
             return;
         }
 
-        // Show loader
         loader.classList.add('active');
         loader.setAttribute('aria-hidden', 'false');
 
@@ -96,11 +99,9 @@ function initFaq() {
 
             const isOpen = body.classList.contains('open');
 
-            // Close all
             document.querySelectorAll('.faq-a.open').forEach(b => b.classList.remove('open'));
             document.querySelectorAll('.faq-q.open').forEach(b => b.classList.remove('open'));
 
-            // Toggle clicked
             if (!isOpen) {
                 body.classList.add('open');
                 btn.classList.add('open');
@@ -120,7 +121,6 @@ function initMobileNav() {
         toggle.setAttribute('aria-expanded', open);
     });
 
-    // Close on link tap
     drawer.querySelectorAll('a').forEach(a => {
         a.addEventListener('click', () => {
             drawer.classList.remove('open');
@@ -128,7 +128,6 @@ function initMobileNav() {
         });
     });
 
-    // Close on outside click
     document.addEventListener('click', function (e) {
         if (!toggle.contains(e.target) && !drawer.contains(e.target)) {
             drawer.classList.remove('open');
