@@ -32,8 +32,12 @@ class VGGEncoder(nn.Module):
         super(VGGEncoder, self).__init__()
 
         self.vgg = nn.Sequential(
+
             nn.Conv2d(3, 3, 1),
 
+            # -----------------
+            # Block 1
+            # -----------------
             nn.ReflectionPad2d(1),
             nn.Conv2d(3, 64, 3),
             nn.ReLU(inplace=True),
@@ -44,6 +48,9 @@ class VGGEncoder(nn.Module):
 
             nn.MaxPool2d(2, 2, ceil_mode=True),
 
+            # -----------------
+            # Block 2
+            # -----------------
             nn.ReflectionPad2d(1),
             nn.Conv2d(64, 128, 3),
             nn.ReLU(inplace=True),
@@ -54,6 +61,9 @@ class VGGEncoder(nn.Module):
 
             nn.MaxPool2d(2, 2, ceil_mode=True),
 
+            # -----------------
+            # Block 3
+            # -----------------
             nn.ReflectionPad2d(1),
             nn.Conv2d(128, 256, 3),
             nn.ReLU(inplace=True),
@@ -72,12 +82,17 @@ class VGGEncoder(nn.Module):
 
             nn.MaxPool2d(2, 2, ceil_mode=True),
 
+            # -----------------
+            # Block 4
+            # -----------------
             nn.ReflectionPad2d(1),
             nn.Conv2d(256, 512, 3),
-            nn.ReLU(inplace=True),  # relu4_1
+            nn.ReLU(inplace=True)  # relu4_1
         )
 
-        self.vgg.load_state_dict(torch.load(vgg_path))
+        # Load pretrained VGG weights
+        state_dict = torch.load(vgg_path)
+        self.vgg.load_state_dict(state_dict, strict=False)
 
         enc_layers = list(self.vgg.children())
 
@@ -86,6 +101,7 @@ class VGGEncoder(nn.Module):
         self.enc_3 = nn.Sequential(*enc_layers[11:18])
         self.enc_4 = nn.Sequential(*enc_layers[18:31])
 
+        # Freeze encoder
         for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
             for param in getattr(self, name).parameters():
                 param.requires_grad = False
@@ -112,10 +128,11 @@ class Decoder(nn.Module):
 
         self.net = nn.Sequential(
 
+            # -----------------
             # 512 -> 256
+            # -----------------
             nn.ReflectionPad2d(1),
             nn.Conv2d(512, 256, 3),
-            nn.InstanceNorm2d(256),
             nn.ReLU(inplace=True),
 
             # Residual refinement
@@ -123,55 +140,55 @@ class Decoder(nn.Module):
             ResidualBlock(256),
             ResidualBlock(256),
 
-            # Upsample
+            # -----------------
+            # Upsample 1
+            # -----------------
             nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(256, 256, 3),
-            nn.InstanceNorm2d(256),
             nn.ReLU(inplace=True),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(256, 256, 3),
-            nn.InstanceNorm2d(256),
             nn.ReLU(inplace=True),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(256, 128, 3),
-            nn.InstanceNorm2d(128),
             nn.ReLU(inplace=True),
 
-            # Upsample
+            # -----------------
+            # Upsample 2
+            # -----------------
             nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(128, 128, 3),
-            nn.InstanceNorm2d(128),
             nn.ReLU(inplace=True),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(128, 64, 3),
-            nn.InstanceNorm2d(64),
             nn.ReLU(inplace=True),
 
-            # Upsample
+            # -----------------
+            # Upsample 3
+            # -----------------
             nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(64, 64, 3),
-            nn.InstanceNorm2d(64),
             nn.ReLU(inplace=True),
 
             nn.ReflectionPad2d(1),
             nn.Conv2d(64, 32, 3),
-            nn.InstanceNorm2d(32),
             nn.ReLU(inplace=True),
 
+            # -----------------
+            # Final RGB output
+            # -----------------
             nn.ReflectionPad2d(1),
-            nn.Conv2d(32, 3, 3),
-            nn.InstanceNorm2d(3),
-            nn.Sigmoid()
+            nn.Conv2d(32, 3, 3)
         )
 
     def forward(self, x):
-        return self.net(x)
+        return torch.clamp(self.net(x), 0, 1)
