@@ -29,7 +29,7 @@ def parse_arguments():
     p.add_argument('--optimizer_path', type=str, default=None)
 
     # Image
-    p.add_argument('--final_size',   type=int,  default=256)
+    p.add_argument('--final_size',   type=int,  default=512)
     p.add_argument('--content_size', type=int,  default=512)
     p.add_argument('--style_size',   type=int,  default=512)
     p.add_argument('--crop',         action='store_true', default=True)
@@ -157,6 +157,12 @@ def main():
             # AdaIN: align content stats to style stats
             target_feats = adaptive_instance_normalization(
                 content_feats[-1], style_feats[-1]
+            )
+            alpha = 0.8
+
+            target_feats = (
+                alpha * target_feats
+                + (1 - alpha) * content_feats[-1]
             )
 
             # Decode to image
