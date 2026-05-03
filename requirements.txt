@@ -6,3 +6,4 @@ torchvision==0.17.2
 tqdm==4.67.3
 Werkzeug==3.1.8
 WTForms==3.2.2
+gunicorn==23.0.0
