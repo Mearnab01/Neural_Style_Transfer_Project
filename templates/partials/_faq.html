@@ -1,0 +1,30 @@
+<section class="content-section" id="faq">
+  <div class="section-header">
+    <span class="section-eyebrow">FAQ</span>
+    <h2 class="section-heading">Questions answered</h2>
+  </div>
+
+  <div class="faq-wrap">
+    {% set faqs = [ ('fq1', 'Is this a pretrained model?', 'No &mdash; the
+    decoder is trained from scratch. Only the VGG encoder uses frozen ImageNet
+    weights as a feature extractor.'), ('fq2', 'Is it free to use?', 'This demo
+    is currently available as a free experience with no account required.'),
+    ('fq3', 'Which painting styles work best?', 'Paintings with strong, distinct
+    textures &mdash; impressionist, watercolour, cubist, ink sketch.
+    Photorealistic style images produce subtle results.'), ('fq4', 'What does
+    the strength slider control?', 'Alpha blends content and style features. 1.0
+    = full style applied. 0.0 = original content unchanged. Values around
+    0.7&ndash;0.9 give the best balance.'), ('fq5', 'What is the tech stack?',
+    'Python, PyTorch, and Flask. The model uses VGG feature extraction with
+    Adaptive Instance Normalisation (AdaIN).'), ] %} {% for id, question, answer
+    in faqs %}
+    <div class="faq-item">
+      <button class="faq-q" data-target="{{ id }}">
+        {{ question }}
+        <i class="fa-solid fa-plus faq-chevron"></i>
+      </button>
+      <div class="faq-a" id="{{ id }}">{{ answer | safe }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>

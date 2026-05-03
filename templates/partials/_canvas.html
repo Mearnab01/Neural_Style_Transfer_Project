@@ -1,0 +1,42 @@
+<main class="canvas-panel">
+  {% if result_image %}
+  <div class="result-container" id="resultSection">
+    <div class="result-toolbar">
+      <span class="result-status">
+        <i class="fa-solid fa-circle-check"></i> Result ready
+      </span>
+      <a
+        href="{{ url_for('send_image', filename=result_image) }}"
+        download
+        class="download-btn"
+      >
+        <i class="fa-solid fa-download"></i> Download
+      </a>
+    </div>
+    <div class="result-img-wrap">
+      <img
+        src="{{ url_for('send_image', filename=result_image) }}"
+        class="result-img"
+        alt="Stylised output"
+      />
+    </div>
+  </div>
+  {% else %}
+  <div class="canvas-empty">
+    <div class="canvas-empty-content">
+      <div class="canvas-empty-icon">
+        <i class="fa-regular fa-image"></i>
+      </div>
+      <p class="canvas-empty-title">Result appears here</p>
+      <p class="canvas-empty-body">
+        Upload a content image and a style<br />reference, then click Transfer
+        Style.
+      </p>
+    </div>
+    <span class="corner corner-tl"></span>
+    <span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span>
+    <span class="corner corner-br"></span>
+  </div>
+  {% endif %}
+</main>

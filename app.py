@@ -26,7 +26,7 @@ app.config.update(
     UPLOAD_FOLDER      = os.path.join('static', 'uploads'),
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024,
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'},
-    DECODER_PATH       = os.environ.get('DECODER_PATH', 'weights/checkpoint_decoder.pth'),
+    DECODER_PATH       = os.environ.get('DECODER_PATH', 'weights/checkpoint_decoder_exp_3.pth'),
     ENCODER_PATH       = os.environ.get('ENCODER_PATH', 'weights/vgg_normalised.pth'),
 )
 
@@ -170,6 +170,10 @@ def send_image(filename):
 def send_example(filename):
     return send_from_directory('examples', filename)
 
+
+@app.route('/styled_data/<filename>')
+def styled_data(filename):
+    return send_from_directory('styled_data', filename)
 
 @app.route('/health')
 def health():

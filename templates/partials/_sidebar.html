@@ -1,0 +1,96 @@
+<aside class="sidebar">
+  <div class="sidebar-scroll">
+    <div class="sidebar-title-block">
+      <span class="eyebrow">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> AdaIN model
+      </span>
+      <h1>Turn any photo into a painting</h1>
+      <p class="sidebar-desc">
+        Upload a content photo and a style artwork. Adjust strength and
+        transfer.
+      </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+      {{ form.hidden_tag() }}
+
+      <!-- Content image -->
+      <div class="field-group">
+        <div class="field-label-row">
+          <label class="field-label">
+            <i class="fa-regular fa-image"></i> Content image
+          </label>
+          <span class="field-hint">Your photo</span>
+        </div>
+        <div class="dropzone" id="contentPreview">
+          {% if content_image %}
+          <img
+            src="{{ url_for('send_image', filename=content_image) }}"
+            alt="Content image"
+          />
+          {% else %}
+          <div class="dz-placeholder">
+            <i class="fa-regular fa-file-image"></i>
+            <span>No image selected</span>
+          </div>
+          {% endif %}
+        </div>
+        {{ form.content(class="file-hidden", id="contentInput",
+        onchange="previewFile(this,'contentPreview')", accept="image/*") }}
+        <label for="contentInput" class="file-choose-btn">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i> Choose file
+        </label>
+      </div>
+
+      <!-- Style image -->
+      <div class="field-group">
+        <div class="field-label-row">
+          <label class="field-label">
+            <i class="fa-solid fa-palette"></i> Style reference
+          </label>
+          <span class="field-hint">Any artwork</span>
+        </div>
+        <div class="dropzone" id="stylePreview">
+          {% if style_image %}
+          <img
+            src="{{ url_for('send_image', filename=style_image) }}"
+            alt="Style image"
+          />
+          {% else %}
+          <div class="dz-placeholder">
+            <i class="fa-regular fa-file-image"></i>
+            <span>No image selected</span>
+          </div>
+          {% endif %}
+        </div>
+        {{ form.style(class="file-hidden", id="styleInput",
+        onchange="previewFile(this,'stylePreview')", accept="image/*") }}
+        <label for="styleInput" class="file-choose-btn">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i> Choose file
+        </label>
+      </div>
+
+      <!-- Strength slider -->
+      <div class="field-group">
+        <div class="field-label-row">
+          <label class="field-label" for="alphaRange">
+            <i class="fa-solid fa-sliders"></i> Style strength
+          </label>
+          <span class="slider-val-badge" id="alphaDisplay">1.0</span>
+        </div>
+        {{ form.alpha(class="sf-range", id="alphaRange", type="range", min="0",
+        max="1", step="0.1") }}
+        <div class="range-labels">
+          <span>Subtle</span><span>Balanced</span><span>Full</span>
+        </div>
+      </div>
+
+      {{ form.submit(class="transfer-btn", id="submitBtn") }} {% if error %}
+      <div class="field-error" role="alert">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</aside>

@@ -1,0 +1,47 @@
+<section class="content-section" id="examples">
+  <div class="section-header">
+    <span class="section-eyebrow">Examples</span>
+    <h2 class="section-heading">See what it produces</h2>
+    <p class="section-body">
+      Each row shows the content image, the style reference, and the final
+      output.
+    </p>
+  </div>
+
+  <div class="examples-wrap">
+    {% set examples = [ ('brad_pitt.jpg', 'sketch.png', 'brad_sketch.jpg'),
+    ('train.jpg', 'fauvism.jpg', 'train_favi.jpg'), ] %} {% for content, style,
+    output in examples %}
+    <div class="ex-row">
+      <div class="ex-inputs-group">
+        <div class="ex-cell">
+          <span class="ex-label">Content</span>
+
+          <img
+            src="{{ url_for('send_example', filename=content) }}"
+            class="ex-photo"
+            alt="Content"
+          />
+        </div>
+        <div class="ex-cell">
+          <span class="ex-label">Style</span>
+          <img
+            src="{{ url_for('send_example', filename=style) }}"
+            class="ex-photo"
+            alt="Style"
+          />
+        </div>
+      </div>
+      <div class="ex-sep"><i class="fa-solid fa-arrow-right-long"></i></div>
+      <div class="ex-result-cell">
+        <span class="ex-label ex-label-out">Output</span>
+        <img
+          src="{{ url_for('send_example', filename=output) }}"
+          class="ex-photo ex-photo-out"
+          alt="Result"
+        />
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>

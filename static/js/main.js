@@ -11,14 +11,77 @@ function previewFile(input, previewId) {
                 <i class="fa-regular fa-file-image"></i>
                 <span>No image selected</span>
             </div>`;
+        updateClearBtn();
         return;
     }
 
     const reader = new FileReader();
     reader.addEventListener('load', function () {
         preview.innerHTML = `<img src="${reader.result}" alt="Preview">`;
+        updateClearBtn();
     });
     reader.readAsDataURL(file);
+}
+
+/* ── Clear button state ──────────────────────────────────────────────────── */
+function updateClearBtn() {
+    const btn = document.getElementById('clearBtn');
+    if (!btn) return;
+
+    const hasContentImg = !!document.querySelector('#contentPreview img');
+    const hasStyleImg   = !!document.querySelector('#stylePreview img');
+    const hasResult     = !!document.querySelector('#resultSection');
+
+    const shouldBeActive = hasContentImg || hasStyleImg || hasResult;
+    btn.disabled = !shouldBeActive;
+    btn.classList.toggle('active', shouldBeActive);
+}
+
+/* ── Clear button logic ──────────────────────────────────────────────────── */
+function clearAll() {
+    const pairs = [
+        { inputId: 'contentInput', previewId: 'contentPreview' },
+        { inputId: 'styleInput',   previewId: 'stylePreview'   },
+    ];
+
+    pairs.forEach(function ({ inputId, previewId }) {
+        const input   = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+
+        if (input)   input.value = '';
+        if (preview) preview.innerHTML = `
+            <div class="dz-placeholder">
+                <i class="fa-regular fa-file-image"></i>
+                <span>No image selected</span>
+            </div>`;
+    });
+
+    const result = document.getElementById('resultSection');
+    if (result) result.remove();
+
+    updateClearBtn();
+}
+
+/* ── Inject + init Clear button ──────────────────────────────────────────── */
+function initClearButton() {
+    const btn = document.createElement('button');
+    btn.id        = 'clearBtn';
+    btn.type      = 'button';
+    btn.className = 'clear-btn';
+    btn.textContent = 'Clear';
+    btn.disabled  = true;
+    btn.setAttribute('aria-label', 'Clear all images and result');
+
+    btn.addEventListener('click', clearAll);
+
+    // Insert right after the submit button, falling back to end of form
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.insertAdjacentElement('afterend', btn);
+    } else {
+        const form = document.getElementById('uploadForm');
+        if (form) form.appendChild(btn);
+    }
 }
 
 /* ── Range slider — filled track + badge ─────────────────────────────────── */
@@ -140,7 +203,46 @@ function initMobileNav() {
 function initAutoScroll() {
     const result = document.getElementById('resultSection');
     if (result) {
+        updateClearBtn(); // result present on load (e.g. after form POST) → activate button
         setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    }
+}
+/* ── Download 5 random style samples directly ────────────────────────────── */
+async function downloadSamples() {
+    const btn  = document.getElementById('samplesBtn');
+    const span = btn.querySelector('span');
+
+    const TOTAL = 60;
+    const PICK  = 5;
+
+    const indices = Array.from({ length: TOTAL }, (_, i) => i + 1)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, PICK);
+
+    btn.disabled = true;
+    span.textContent = 'Downloading\u2026';
+
+    try {
+        for (const n of indices) {
+            const res  = await fetch(`https://raw.githubusercontent.com/Mearnab01/Neural_Style_Transfer_Project/main/styled_data/styled_${n}.jpg`);
+            if (!res.ok) throw new Error(`Failed: styled_${n}.jpg`);
+            const blob = await res.blob();
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `styled_${n}.jpg`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+
+            // small gap so browser doesn't block rapid-fire downloads
+            await new Promise(r => setTimeout(r, 300));
+        }
+    } catch (err) {
+        console.error('Download failed:', err);
+        showError('Could not download sample images. Check the styled_data path.');
+    } finally {
+        btn.disabled = false;
+        span.textContent = 'Sample Styles';
     }
 }
 
@@ -148,6 +250,7 @@ function initAutoScroll() {
 document.addEventListener('DOMContentLoaded', function () {
     initSlider();
     initForm();
+    initClearButton();
     initFaq();
     initMobileNav();
     initAutoScroll();
