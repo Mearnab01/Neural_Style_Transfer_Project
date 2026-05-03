@@ -60,7 +60,7 @@ def load_models():
 encoder, decoder = load_models()
 
 _transform = transforms.Compose([
-    transforms.Resize(512),
+    transforms.Resize(256), ## fix: was 512, too large for CPU inference
     transforms.ToTensor(),
 ])
 
